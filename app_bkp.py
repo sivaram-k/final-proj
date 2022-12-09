@@ -30,11 +30,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import ConfusionMatrixDisplay
 
 ## Regression algos libraries
+from sklearn.linear_model import LogisticRegression #Logistic Regression is a Machine Learning classification algorithm
 from sklearn.linear_model import LinearRegression #Linear Regression is a Machine Learning classification algorithm
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.neighbors import KNeighborsRegressor
-
 from sklearn.model_selection import train_test_split #Splitting of Dataset
 from sklearn.metrics import classification_report 
 from sklearn.metrics import confusion_matrix
@@ -69,9 +66,9 @@ df_zomato_establishment_subset = df_zomato_establishment_subset[(df_zomato_estab
 metro_list=df_zomato.city.isin(["Mumbai","New Delhi","Chennai","Kolkata","Hyderabad","Bangalore"])
 
 #Define options for analysis
-options=["General overview","City","Establishment","Data Analysis Summary","ML_Classification_Modeling","ML_Regression_Modeling","ML_User_Predictions"]
+options=["General overview","City","Establishment","Summary","ML_Classification","ML_Regression"]
 
-selected_type = st.sidebar.radio('Data Analysis, Modeling & Predictions',options)
+selected_type = st.sidebar.radio('Data Analysis',options)
 
 st.write(""" 
     # Zomato Restaurants in India Analysis
@@ -108,7 +105,7 @@ if (selected_type == "General overview"):
           """
             Zomato is one of the popular food ordering mobile apps in India. The 'Zomato Indian Restaurants' dataset used for analysis is picked up from Kaggle and primarily provides 
             details of various factors (Cities, Chains, Cuisines, Ratings, Cost, Locality etc) involved in Online ordering through Zomato. 
-      """)  
+      """)
 
     if st.checkbox("Issues with Dataset"):
         st.write(
@@ -490,7 +487,7 @@ if (selected_type == "Establishment"):
             higher for the 3.5 to 5 range and also significantly higher for the Cafe & Casual Dining options...
         """)
 
-if (selected_type == "Data Analysis Summary"):
+if (selected_type == "Summary"):
 
     img = Image.open("zomato_logo.jpg")
     st.image(img)
@@ -506,17 +503,21 @@ if (selected_type == "Data Analysis Summary"):
     """
     )
 
-def model_summary(y_test,y_pred):
-    accuracy = accuracy_score(y_test,y_pred)
-    st.write("Accuracy")
-    st.write(accuracy)
-    st.write("Classification report")
-    report = classification_report(y_test, y_pred, output_dict=True)
-    df = pd.DataFrame(report).transpose()
-    st.write(df)
-    st.write("Confusion Matrix")    
-    cm = confusion_matrix(y_test, y_pred)
-    st.plotly_chart(px.imshow(cm,color_continuous_scale='Viridis', origin='lower',text_auto=True))
+if (selected_type == "Summary"):
+
+    img = Image.open("zomato_logo.jpg")
+    st.image(img)
+
+    st.write(
+          """
+          Online ordering has become a major phenomenon in the recent days (especially post Covid) and more and more applications are being developed and used by people
+          for various reasons like ordering food, clothing & apparels, groceries, retail stuff, healthcare consultations etc. In such a situation, it's more important to 
+          make an educated reasoning into the key factors influencing decision-making and further enhance the usage of the corresponding applications.
+
+          To summarize, the 'Zomato Indian Restaurants' dataset helped come up with interesting insights into online ordering with reference to various factors like 
+          location, price, ratings, establishment type. It has lot more scope for further analysis. 
+    """
+    )
 
 df_zomato =pd.read_csv("df_zomato_v1.csv") 
 df_zomato_establishments = df_zomato.groupby("establishment").count()["res_id"].sort_values(ascending=False).head(7).rename_axis("establishment").reset_index(name="restaurants_count")
@@ -529,199 +530,106 @@ le = LabelEncoder()
 df_zomato_establishment_subset['city'] = le.fit_transform(df_zomato_establishment_subset['city'])
 df_zomato_establishment_subset['establishment'] = le.fit_transform(df_zomato_establishment_subset['establishment'])
 
-x = df_zomato_establishment_subset.iloc[:,[2,3,5,10,11]]
+x = df_zomato_establishment_subset.iloc[:,[2,3,5,6,10,11]]
 y = df_zomato_establishment_subset.iloc[:,13]
 
 x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=.1,random_state=0)
 
-if (selected_type == "ML_Classification_Modeling"):
-    st.write("Trying some Classifiication Models to predict 'rating'")
-
-    st.write("'rating' parameter is a categorical variable created to classify the ratings into discrete values (0,1,2,3,4,5)")
-    st.write("Some of the key parameters influencing rating are 'votes', 'city', 'establishment type" and'average_cost_for_two')
-    st.write("For classification modeling, I used KNN, DecisionTree, Randon Forest & SVM model for the project purpose to confirm the ratings accuracy")
+if (selected_type == "ML_Classification"):
+    st.write("Trying some Classifiication models on predicting ratings")
 
     type = st.radio(
         "Select type of algorithm",
-        ("KNN", "Decision Tree","Random Forest","SVM")
+        ("SVM", "KNN", "Decision Tree","Random Forest")
     )
 
     if(type=="KNN"):
         st.write("K-nearest Neighbour")
+
         param = st.multiselect('Select features',['city', 'establishment', 'average_cost_for_two','votes','photo_count'],['city'])
+
         neighbor_count = st.slider('Number of Neighbors', 2, 10, 5)
 
         if(st.button('Model predictions & results, Confusion Matrix')):
             knn = KNeighborsClassifier(n_neighbors = neighbor_count,p=2)
             knn.fit(x_train.loc[:,param], y_train)
             y_pred = knn.predict(x_test.loc[:,param])
-            model_summary(y_test,y_pred)
+            accuracy = accuracy_score(y_test,y_pred)
+            st.write("Accuracy")
+            st.write(accuracy)
+            st.write("Classification report")
+            report = classification_report(y_test, y_pred, output_dict=True)
+            df = pd.DataFrame(report).transpose()
+            st.write(df)
+            st.write("Confusion Matrix")    
+            cm = confusion_matrix(y_test, y_pred)
+            st.plotly_chart(px.imshow(cm,color_continuous_scale='Viridis', origin='lower',text_auto=True))
 
     if(type=="Decision Tree"):
-        st.write("Decision Tree Classifier")          
-        param = st.multiselect('Select features',['city', 'establishment', 'average_cost_for_two','votes','photo_count'],['city'])
-        max_depth_DT = st.slider('Max Depth', 2, 20, 10)
+            st.write("Decision Tree Classifier")
+            
+            param = st.multiselect('Select features',['city', 'establishment', 'average_cost_for_two','votes','photo_count'],['city'])
 
-        if(st.button('Model predictions & results, Confusion Matrix')):
-            classifier_dTree = DecisionTreeClassifier(criterion='entropy', random_state=0,max_depth=max_depth_DT)
-            classifier_dTree.fit(x_train.loc[:,param], y_train)
-            y_pred = classifier_dTree.predict(x_test.loc[:,param])
-            model_summary(y_test,y_pred)
+            max_depth_DT = st.slider('Max Depth', 2, 20, 10)
+
+            if(st.button('Model predictions & results, Confusion Matrix')):
+                #knn = KNeighborsClassifier(n_neighbors = neighbor_count,p=2)
+                classifier_dTree = DecisionTreeClassifier(criterion='entropy', random_state=0,max_depth=max_depth_DT)
+                classifier_dTree.fit(x_train.loc[:,param], y_train)
+                y_pred = classifier_dTree.predict(x_test.loc[:,param])
+                accuracy = accuracy_score(y_test,y_pred)
+                st.write("Accuracy")
+                st.write(accuracy)
+                #st.write(classification_report(y_train,knn.predict(y_train.loc[:,param])))
+                st.write("Classification report")
+                report = classification_report(y_test, y_pred, output_dict=True)
+                df = pd.DataFrame(report).transpose()
+                st.write(df)
+                st.write("Confusion Matrix")    
+                cm = confusion_matrix(y_test, y_pred)
+                st.plotly_chart(px.imshow(cm,color_continuous_scale='Viridis', origin='lower',text_auto=True))    
 
     if(type=="Random Forest"):
-        st.write("Random Forest Classifier")      
+        st.write("Random Forest Classifier")
+        
         param = st.multiselect('Select features',['city', 'establishment', 'average_cost_for_two','votes','photo_count'],['city'])
+
         n_estimators_RF = st.slider('N Estimators', 2, 100, 10)
 
         if(st.button('Model predictions & results, Confusion Matrix')):
             classifier_RF = RandomForestClassifier(criterion='entropy', random_state=0,n_estimators=n_estimators_RF)
             classifier_RF.fit(x_train.loc[:,param], y_train)
             y_pred = classifier_RF.predict(x_test.loc[:,param])
-            model_summary(y_test,y_pred)
+            accuracy = accuracy_score(y_test,y_pred)
+            st.write("Accuracy")
+            st.write(accuracy)            #st.write(classification_report(y_train,knn.predict(y_train.loc[:,param])))
+            st.write("Classification report")
+            report = classification_report(y_test, y_pred, output_dict=True)
+            df = pd.DataFrame(report).transpose()
+            st.write(df)
+            st.write("Confusion Matrix")    
+            cm = confusion_matrix(y_test, y_pred)
+            st.plotly_chart(px.imshow(cm,color_continuous_scale='Viridis', origin='lower',text_auto=True))    
 
     if(type=="SVM"):
         st.write("Support Vector Machine")
 
-        st.write("Support Vector Machine (SVM) are supervised machine learning models than analyze data for classification & regression analysis. ")
         param = st.multiselect('Select features',['city', 'establishment', 'average_cost_for_two','votes','photo_count'],['city'])
+
         c_value = st.slider('C', 1, 100, 10)
 
         if(st.button('Model predictions & results, Confusion Matrix')):
             #knn = KNeighborsClassifier(n_neighbors = neighbor_count,p=2)
-            classifier_svm=SVC(kernel='linear', C=c_value)
+            classifier_svm=SVC(kernel='rbf', C=c_value)
             classifier_svm.fit(x_train.loc[:,param], y_train)
             y_pred = classifier_svm.predict(x_test.loc[:,param])
-            model_summary(y_test,y_pred)
-
-
-x = df_zomato_establishment_subset.iloc[:,[2,3,5,10,11]]
-y = df_zomato_establishment_subset.iloc[:,13]
-
-x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=.1,random_state=0)
-
-def model_summary_regression(y_test,y_pred):
-    accuracy = r2_score(y_test,y_pred)
-    st.write("Accuracy")
-    st.write(accuracy)
-
-if (selected_type == "ML_Regression_Modeling"):
-    st.write("Trying some Regression models to predict 'aggregate_rating'")
-
-    type = st.radio(
-        "Select type of algorithm",
-        ("Linear Regression", "KNN", "Decision Tree","Random Forest")
-    )
-
-    param = st.multiselect('Select features',['city', 'establishment', 'average_cost_for_two','votes','photo_count'],['votes'])
-
-    if(type=="Linear Regression"):
-        st.write("Linear Regression")
-        if(st.button('Model predictions & results, Confusion Matrix')):
-            reg=LinearRegression()
-            reg.fit(x_train,y_train)
-            y_pred=reg.predict(x_test)
-            model_summary_regression(y_test,y_pred)
-
-    if(type=="KNN"):
-        st.write("KNN Regressor")
-        neighbor_count = st.slider('Number of Neighbors', 2, 10, 5)
-
-        if(st.button('Model predictions & results, Confusion Matrix')):
-            knn = KNeighborsRegressor(n_neighbors = neighbor_count,p=2)
-            knn.fit(x_train.loc[:,param], y_train)
-            y_pred = knn.predict(x_test.loc[:,param])
-            model_summary_regression(y_test,y_pred)
-
-    if(type=="Decision Tree"):
-        st.write("Decision Tree Regressor")          
-        max_depth_DT = st.slider('Max Depth', 2, 20, 10)
-
-        if(st.button('Model predictions & results, Confusion Matrix')):
-            dTree = DecisionTreeRegressor(criterion='squared_error', random_state=0,max_depth=max_depth_DT)
-            dTree.fit(x_train.loc[:,param], y_train)
-            y_pred = dTree.predict(x_test.loc[:,param])
-            model_summary_regression(y_test,y_pred)
-
-    if(type=="Random Forest"):
-        st.write("Random Forest Regressor")      
-        n_estimators_RF = st.slider('N Estimators', 2, 100, 10)
-
-        if(st.button('Model predictions & results, Confusion Matrix')):
-            regressor_RF = RandomForestRegressor(criterion='squared_error', random_state=0,n_estimators=n_estimators_RF)
-            regressor_RF.fit(x_train.loc[:,param], y_train)
-            y_pred = regressor_RF.predict(x_test.loc[:,param])
-            model_summary_regression(y_test,y_pred)
-
-x = df_zomato_establishment_subset.iloc[:,[2,3,6,13]]
-y = df_zomato_establishment_subset.iloc[:,5]
-
-x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=.1,random_state=0)   
-
-if (selected_type == "ML_User_Predictions"):
-    st.title("Predict Average Cost for Two")
-
-    mod = st.selectbox('Select the model for prediction:.', ['KNN', 'Decision Tree', 'Random Forest'])
-
-    city_name = st.selectbox('Select City',["Mumbai","Chennai:","New Delhi","Kolkata","Hyderabad","Bangalore"])
-
-    if (city_name == 'Mumbai'):
-        city = 56
-    elif (city_name == 'Bangalore'):
-        city = 8
-    elif (city_name == 'Chennai'):
-        city = 12
-    elif (city_name == 'New Delhi'):
-        city = 66    
-    elif (city_name == 'Kolkata'):
-        city = 46    
-    elif (city_name == 'Hyderabad'):
-        city = 31
-
-    price_range = st.selectbox('Select price_range',[1,2,3,4])
-
-    rating = st.selectbox('Select Rating',[0,2,3,4,5])
-
-    #{'Bakery': 0, 'Beverage Shop': 1, 'Café': 2, 'Casual Dining': 3, 'Dessert Parlour': 4, 'Quick Bites': 5, 'Sweet Shop': 6}    
-    establishment_name = st.selectbox('Select type of establishment',['Bakery','Beverage Shop','Café','Casual Dining','Dessert Parlour','Quick Bites', 'Sweet Shop'])
-
-    if (establishment_name == 'Bakery'):
-        establishment = 0
-    elif (establishment_name == 'Beverage Shop'):
-        establishment = 1
-    elif (establishment_name == 'Café'):
-        establishment = 2
-    elif (establishment_name == 'Casual Dining'):
-        establishment = 3
-    elif (establishment_name == 'Dessert Parlour'):
-        establishment = 4
-    elif (establishment_name == 'Quick Bites'):
-        establishment = 5
-    elif (establishment_name == 'Sweet Shop'):
-        establishment = 6
-
-    pred = st.button("Predict")
-    if pred:
-
-        if mod == 'KNN':
-            knn = KNeighborsRegressor(n_neighbors = 5,p=2)
-            knn.fit(x_train, y_train)
-            y_pred = knn.predict(x_test)
-
-            st.write("Average cost predicted is: ")
-            st.write(knn.predict([[establishment,city, price_range,rating]]))
-
-        if mod == 'Random Forest':
-            regressor_RF = RandomForestRegressor(criterion='squared_error', random_state=0,n_estimators=n_estimators_RF)
-            regressor_RF.fit(x_train, y_train)
-            y_pred = regressor_RF.predict(x_test)
-
-            st.write("Average cost predicted is: ")
-            st.write(regressor_RF.predict([[establishment,city, price_range,rating]]))
-
-        if mod == 'Decision Tree':
-            dTree = DecisionTreeRegressor(criterion='squared_error', random_state=0,max_depth=10)
-            dTree.fit(x_train, y_train)
-            y_pred = dTree.predict(x_test)
-
-            st.write("Average cost predicted is: ")
-            st.write(dTree.predict([[establishment,city, price_range,rating]]))
+            accuracy = accuracy_score(y_test,y_pred)
+            st.write("Accuracy")
+            st.write(accuracy)
+            st.write("Classification report")
+            report = classification_report(y_test, y_pred, output_dict=True)
+            df = pd.DataFrame(report).transpose()
+            st.write(df)
+            st.write("Confusion Matrix")    
+            cm = confusion_matrix(y_test, y_pred)
+            st.plotly_chart(px.imshow(cm,color_continuous_scale='Viridis', origin='lower',text_auto=True))
