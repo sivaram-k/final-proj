@@ -544,7 +544,7 @@ if (selected_type == "ML_Classification_Modeling"):
     st.write("Users are given options to play around with 1 key hyperparameter per Model")
     st.write("Accuracy, Classification report & Confusion Matrix were used as the metrics in measuring a classification model's accuracy")
     st.write("As per the observations, SVM is taking the maximum time")
-    st.write("Accuracy is observed to be good for Random Forest & Decision tree classifiers and is around ~83%")
+    st.write("Accuracy is observed to be highest for Random Forest & Decision tree classifiers and the value is around ~83%")
 
     type = st.radio(
         "Select type of algorithm",
@@ -618,7 +618,7 @@ if (selected_type == "ML_Regression_Modeling"):
     st.write("Users are given options to play around with 1 key hyper-parameter per Model")
     st.write("Accuracy is used as the metrics in measuring a regression model's accuracy")
     st.write("As per the observations, Linear regression model has the least accuracy")
-    st.write("Random Forest & Decision tree regressors accuracy is around ~89%")
+    st.write("Random Forest & Decision tree regressors have the highest accuracy and the value is around ~89%")
 
     type = st.radio(
         "Select type of algorithm",
