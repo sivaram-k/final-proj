@@ -69,7 +69,7 @@ df_zomato_establishment_subset = df_zomato_establishment_subset[(df_zomato_estab
 metro_list=df_zomato.city.isin(["Mumbai","New Delhi","Chennai","Kolkata","Hyderabad","Bangalore"])
 
 #Define options for analysis
-options=["General overview","City","Establishment","Data Analysis Summary","ML_Classification_Modeling","ML_Regression_Modeling","ML_User_Predictions"]
+options=["General overview","City","Establishment","Data Analysis Summary","ML_Classification_Modeling","ML_Regression_Modeling","ML_User_Predictions","ML Modeling & Prediction Summary"]
 
 selected_type = st.sidebar.radio('Data Analysis, Modeling & Predictions',options)
 
@@ -535,11 +535,16 @@ y = df_zomato_establishment_subset.iloc[:,13]
 x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=.1,random_state=0)
 
 if (selected_type == "ML_Classification_Modeling"):
-    st.write("Trying some Classifiication Models to predict 'rating'")
+    st.write("Trying some Classifiication Models to accurately predict 'rating'")
 
-    st.write("'rating' parameter is a categorical variable created to classify the ratings into discrete values (0,1,2,3,4,5)")
-    st.write("Some of the key parameters influencing rating are 'votes', 'city', 'establishment type" and'average_cost_for_two')
-    st.write("For classification modeling, I used KNN, DecisionTree, Randon Forest & SVM model for the project purpose to confirm the ratings accuracy")
+    st.write("'rating' parameter is a categorical variable created to denote a restaurant rating by the users. The possible values are (0,1,2,3,4,5) where 5 denotes the highest rating")
+    st.write("Some of the key parameters influencing rating are 'votes', 'city', 'establishment type' and 'average_cost_for_two'")
+    st.write("For classification modeling, I used KNN, DecisionTree, Randon Forest & SVM model to verify the rating accuracy")
+    st.write("Scaling was also used for input parameters during modeling. However, the streamlit app was focussed on predictions without scaling.")
+    st.write("Users are given options to play around with 1 key hyperparameter per Model")
+    st.write("Accuracy, Classification report & Confusion Matrix were used as the metrics in measuring a classification model's accuracy")
+    st.write("As per the observations, SVM is taking the maximum time")
+    st.write("Accuracy is observed to be good for Random Forest & Decision tree classifiers and is around ~83%")
 
     type = st.radio(
         "Select type of algorithm",
@@ -607,6 +612,14 @@ def model_summary_regression(y_test,y_pred):
 if (selected_type == "ML_Regression_Modeling"):
     st.write("Trying some Regression models to predict 'aggregate_rating'")
 
+    st.write("'aggregate_rating' parameter is a continuous variable and is provided with the dataset.")
+    st.write("Some of the key parameters influencing aggregate_rating are 'votes', 'city', 'establishment type' and 'average_cost_for_two'")
+    st.write("For Regression modeling, KNN, DecisionTree, Randon Forest & linear regression models are used to verify the aggregate_rating prediction accuracy")
+    st.write("Users are given options to play around with 1 key hyper-parameter per Model")
+    st.write("Accuracy is used as the metrics in measuring a regression model's accuracy")
+    st.write("As per the observations, Linear regression model has the least accuracy")
+    st.write("Random Forest & Decision tree regressors accuracy is around ~89%")
+
     type = st.radio(
         "Select type of algorithm",
         ("Linear Regression", "KNN", "Decision Tree","Random Forest")
@@ -616,7 +629,7 @@ if (selected_type == "ML_Regression_Modeling"):
 
     if(type=="Linear Regression"):
         st.write("Linear Regression")
-        if(st.button('Model predictions & results, Confusion Matrix')):
+        if(st.button('Model predictions & accuracy')):
             reg=LinearRegression()
             reg.fit(x_train,y_train)
             y_pred=reg.predict(x_test)
@@ -626,7 +639,7 @@ if (selected_type == "ML_Regression_Modeling"):
         st.write("KNN Regressor")
         neighbor_count = st.slider('Number of Neighbors', 2, 10, 5)
 
-        if(st.button('Model predictions & results, Confusion Matrix')):
+        if(st.button('Model predictions & accuracy')):
             knn = KNeighborsRegressor(n_neighbors = neighbor_count,p=2)
             knn.fit(x_train.loc[:,param], y_train)
             y_pred = knn.predict(x_test.loc[:,param])
@@ -636,7 +649,7 @@ if (selected_type == "ML_Regression_Modeling"):
         st.write("Decision Tree Regressor")          
         max_depth_DT = st.slider('Max Depth', 2, 20, 10)
 
-        if(st.button('Model predictions & results, Confusion Matrix')):
+        if(st.button('Model predictions & accuracy')):
             dTree = DecisionTreeRegressor(criterion='squared_error', random_state=0,max_depth=max_depth_DT)
             dTree.fit(x_train.loc[:,param], y_train)
             y_pred = dTree.predict(x_test.loc[:,param])
@@ -646,7 +659,7 @@ if (selected_type == "ML_Regression_Modeling"):
         st.write("Random Forest Regressor")      
         n_estimators_RF = st.slider('N Estimators', 2, 100, 10)
 
-        if(st.button('Model predictions & results, Confusion Matrix')):
+        if(st.button('Model predictions & accuracy')):
             regressor_RF = RandomForestRegressor(criterion='squared_error', random_state=0,n_estimators=n_estimators_RF)
             regressor_RF.fit(x_train.loc[:,param], y_train)
             y_pred = regressor_RF.predict(x_test.loc[:,param])
@@ -659,6 +672,11 @@ x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=.1,random_state=0)
 
 if (selected_type == "ML_User_Predictions"):
     st.title("Predict Average Cost for Two")
+
+    st.write("'average_cost_for_two' parameter is a continuous variable and is provided with the dataset. This variable contains the average cost for 2 persons, per order")
+    st.write("Some of the key parameters influencing aggregate_rating are 'votes', 'city', 'establishment type' and 'rating'")
+    st.write("Regression models - KNN, Random Forest & Decision Tree - are used to generate expected 'average_cost_for_two")
+    st.write("Users are given drop-down options to provide inputs for parameters like rating, city, establishment etc")
 
     mod = st.selectbox('Select the model for prediction:.', ['KNN', 'Decision Tree', 'Random Forest'])
 
@@ -725,3 +743,12 @@ if (selected_type == "ML_User_Predictions"):
 
             st.write("Average cost predicted is: ")
             st.write(dTree.predict([[establishment,city, price_range,rating]]))
+
+if (selected_type == "ML Modeling & Prediction Summary"):
+    img = Image.open("zomato_logo.jpg")
+    st.image(img)
+
+    st.write("ML Modeling & Predictions")
+    st.write("Online ordering is a major phenomenon currently and has lot more scope for future. We just did a high-level usage of the ML models (Classification/Regression) in the final project,")
+    st.write("There is a lot more scope for improvement, especially in terms of scaling, feature engineering and hyperparameter tuninng or choosing the right ML models as per the requirements")
+    st.write("Another key improvement will be in terms of coming up with more metrics to evaluate the efficiency of the ML algorithms")
