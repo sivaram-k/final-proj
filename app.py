@@ -750,5 +750,5 @@ if (selected_type == "ML Modeling & Prediction Summary"):
 
     st.write("ML Modeling & Predictions")
     st.write("Online ordering is a major phenomenon currently and has lot more scope for future. We just did a high-level usage of the ML models (Classification/Regression) in the final project,")
-    st.write("There is a lot more scope for improvement, especially in terms of scaling, feature engineering and hyperparameter tuninng or choosing the right ML models as per the requirements")
+    st.write("There is a lot more scope for improvement, especially in terms of scaling, feature engineering and hyperparameter tuning or choosing the right ML models as per the requirements")
     st.write("Another key improvement will be in terms of coming up with more metrics to evaluate the efficiency of the ML algorithms")
